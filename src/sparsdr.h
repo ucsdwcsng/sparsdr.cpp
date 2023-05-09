@@ -6,6 +6,7 @@
 #include <cstring>
 #include <cstdlib>
 #include <fftw3.h>
+#include <fftengine.h>
 
 class SparSDR
 {
@@ -18,4 +19,6 @@ private:
     unsigned int fft_size;
     unsigned int start_bin;
     unsigned int stop_bin;
+    FFTEngine *fft0 = nullptr;
+    FFTEngine *fft1 = nullptr;
 };

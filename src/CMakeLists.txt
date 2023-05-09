@@ -33,6 +33,7 @@ include_directories(
 list(APPEND sparsdr_sources
     main.cpp
     sparsdr.cpp
+    fftengine.cpp
 )
 
 add_executable(${PROJECT_NAME} ${sparsdr_sources})
