@@ -15,10 +15,11 @@ endif()
 # install(TARGETS ${PROJECT_NAME} DESTINATION bin)
 
 # Build project libraries
-include_directories(${CMAKE_SOURCE_DIR}/src)
+# include_directories(${CMAKE_SOURCE_DIR}/src)
 
 # target_link_libraries(${PROJECT_NAME} pthread)
 # target_link_directories()
 
 # add_executable(${PROJECT_NAME} src/main.cpp)
-add_library(${PROJECT_NAME} src/sparsdr.cpp)
+# add_library(${PROJECT_NAME} src/sparsdr.cpp)
+add_subdirectory(src)
