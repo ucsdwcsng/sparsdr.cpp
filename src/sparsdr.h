@@ -1,7 +1,21 @@
 #pragma once
 
-namespace sparsdrproc
+#include <util.h>
+#include <iostream>
+#include <fstream>
+#include <cstring>
+#include <cstdlib>
+#include <fftw3.h>
+
+class SparSDR
 {
-    int add(int a, int b);
-    int multiply(int a, int b);
-}
+public:
+    SparSDR(unsigned int fft_size, unsigned int start_bin, unsigned int stop_bin);
+    ~SparSDR();
+    void process_block();
+
+private:
+    unsigned int fft_size;
+    unsigned int start_bin;
+    unsigned int stop_bin;
+};
