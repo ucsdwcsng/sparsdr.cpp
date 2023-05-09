@@ -4,7 +4,6 @@
 # LIQUID_INCLUDES    - where to find LIQUID.h
 # LIQUID_LIBRARIES   - List of libraries when using LIQUID.
 # LIQUID_FOUND       - True if LIQUID found.
-
 if(LIQUID_INCLUDES)
     # Already in cache, be silent
     set(LIQUID_FIND_QUIETLY TRUE)
