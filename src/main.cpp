@@ -2,7 +2,7 @@
 #include <fstream>
 #include <complex>
 #include <vector>
-#include <liquid/liquid.h>
+#include <fftw3.h>
 #include <cstring>
 #include <cstdlib>
 
@@ -14,30 +14,27 @@ void process_block(unsigned int fft_size,
     std::complex<float> interblock[fft_size];
     std::complex<float> output_block[fft_size];
     int flags = 0;
-    fftplan fft = fft_create_plan(fft_size, block, interblock, LIQUID_FFT_FORWARD, flags);
-    fftplan ifft = fft_create_plan(fft_size, interblock, output_block, LIQUID_FFT_BACKWARD, flags);
+    // fftplan fft = fft_create_plan(fft_size, block, interblock, LIQUID_FFT_FORWARD, flags);
+    // fftplan ifft = fft_create_plan(fft_size, interblock, output_block, LIQUID_FFT_BACKWARD, flags);
+    fftwf_plan fft = fftwf_plan_dft_1d(fft_size,
+                                       reinterpret_cast<fftwf_complex *>(block),
+                                       reinterpret_cast<fftwf_complex *>(interblock),
+                                       FFTW_FORWARD, FFTW_ESTIMATE);
 
-    size_t block_size;
+    fftwf_plan ifft = fftwf_plan_dft_1d(fft_size,
+                                        reinterpret_cast<fftwf_complex *>(interblock),
+                                        reinterpret_cast<fftwf_complex *>(output_block),
+                                        FFTW_BACKWARD, FFTW_ESTIMATE);
+
     while (true)
     {
-        block_size = 0;
-        for (; block_size < fft_size; ++block_size)
-        {
-            float real, imag;
-            if (!std::cin.read(reinterpret_cast<char *>(&real), sizeof(float)) ||
-                !std::cin.read(reinterpret_cast<char *>(&imag), sizeof(float)))
-            {
-                break;
-            }
-            block[block_size] = std::complex<float>(real, imag);
-        }
-
-        if (block_size == 0 || block_size < fft_size)
+        size_t read_size = fread(block, sizeof(std::complex<float>), fft_size, stdin);
+        if (read_size == 0 || read_size < fft_size)
         {
             break;
         }
         // Perform FFT
-        fft_execute(fft);
+        fftwf_execute(fft);
 
         // Zero out specified bins
         for (unsigned int bin = start_bin; bin <= stop_bin; ++bin)
@@ -46,22 +43,19 @@ void process_block(unsigned int fft_size,
         }
 
         // Perform iFFT
-        fft_execute(ifft);
+        fftwf_execute(ifft);
 
         // Normalize and output the block
-        for (size_t j = 0; j < block_size; ++j)
+        for (size_t j = 0; j < read_size; ++j)
         {
             output_block[j] /= static_cast<float>(fft_size);
-            float real_part = output_block[j].real();
-            float imag_part = output_block[j].imag();
-            std::cout.write(reinterpret_cast<const char *>(&real_part), sizeof(float));
-            std::cout.write(reinterpret_cast<const char *>(&imag_part), sizeof(float));
         }
+        fwrite(output_block, sizeof(std::complex<float>), read_size, stdout);
     }
 
     // Clean up
-    fft_destroy_plan(fft);
-    fft_destroy_plan(ifft);
+    fftwf_destroy_plan(fft);
+    fftwf_destroy_plan(ifft);
 }
 
 int main(int argc, char **argv)
@@ -81,6 +75,13 @@ int main(int argc, char **argv)
         std::cerr << "Invalid bin range" << std::endl;
         return 1;
     }
+
+    // Set stdin and stdout to binary mode
+    std::ios_base::sync_with_stdio(false);
+    std::cin.tie(nullptr);
+    std::cout.tie(nullptr);
+    freopen(nullptr, "rb", stdin);
+    freopen(nullptr, "wb", stdout);
 
     // Process the input
     process_block(fft_size, start_bin, stop_bin);
