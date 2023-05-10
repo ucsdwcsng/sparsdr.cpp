@@ -34,4 +34,6 @@ private:
     unsigned int stop_bin;
     FFTEngine *fft0 = nullptr;
     FFTEngine *fft1 = nullptr;
+
+    StaggeredBuffer *staggered_buffer = nullptr;
 };

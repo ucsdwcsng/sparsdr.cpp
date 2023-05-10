@@ -6,8 +6,16 @@ SparSDR::SparSDR(unsigned int fft_size, unsigned int start_bin, unsigned int sto
     this->start_bin = start_bin;
     this->stop_bin = stop_bin;
 
+    // if fft size is not a multiple of 2, throw Runtime error
+    if (this->fft_size % 2 != 0)
+    {
+        throw std::runtime_error("FFT size must be a multiple of 2");
+    }
+
     this->fft0 = new FFTEngine(this->fft_size, FFTW_FORWARD, FFTW_ESTIMATE);
     this->fft1 = new FFTEngine(this->fft_size, FFTW_BACKWARD, FFTW_ESTIMATE);
+
+    this->staggered_buffer = new StaggeredBuffer(this->fft_size, this->fft_size / 2);
 }
 
 SparSDR::~SparSDR()
@@ -15,6 +23,9 @@ SparSDR::~SparSDR()
     // Destroy FFT plans
     delete this->fft0;
     delete this->fft1;
+
+    // Destroy buffers
+    delete this->staggered_buffer;
 }
 
 void SparSDR::threshold_block(std::complex<float> *block)
@@ -35,12 +46,13 @@ void SparSDR::process_block()
     {
 
         size_t read_size = this->read_samples(block, this->fft_size);
+        this->staggered_buffer->push(block);
         if (read_size == 0 || read_size < this->fft_size)
         {
             break;
         }
         // Perform FFT
-        fft0->execute_fft(block, interblock);
+        fft0->execute_fft(this->staggered_buffer->get_buffer0(), interblock);
 
         // Zero out specified bins
         this->threshold_block(interblock);

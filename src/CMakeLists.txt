@@ -34,6 +34,7 @@ list(APPEND sparsdr_sources
     main.cpp
     sparsdr.cpp
     fftengine.cpp
+    util.cpp
 )
 
 add_executable(${PROJECT_NAME} ${sparsdr_sources})
