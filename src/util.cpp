@@ -1,5 +1,16 @@
 #include <util.h>
 
+// Simple tools
+void scale_block(std::complex<float> *block, size_t block_size)
+{
+    for (size_t i = 0; i < block_size; ++i)
+    {
+        block[i] /= static_cast<float>(block_size);
+    }
+}
+
+// StaggeredBuffer
+
 StaggeredBuffer::StaggeredBuffer(unsigned int buffer_size, unsigned int stagger_size)
 {
     this->buffer_size = buffer_size;

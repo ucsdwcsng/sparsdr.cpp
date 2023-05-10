@@ -7,6 +7,10 @@
 #include <sstream>
 #include <vector>
 
+// Simple processing
+void scale_block(std::complex<float> *block, size_t block_size);
+// Staggered buffer
+
 class StaggeredBuffer
 {
 public:

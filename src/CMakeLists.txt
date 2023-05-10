@@ -30,16 +30,28 @@ include_directories(
     ${LIQUID_INCLUDES}
 )
 
-list(APPEND sparsdr_sources
-    main.cpp
+list(APPEND sparsdr_compress_sources
+    main_compress.cpp
     sparsdr.cpp
     fftengine.cpp
     util.cpp
 )
 
-add_executable(${PROJECT_NAME} ${sparsdr_sources})
+list(APPEND sparsdr_reconstruct_sources
+    main_reconstruct.cpp
+    sparsdr.cpp
+    fftengine.cpp
+    util.cpp
+)
 
-target_link_libraries(${PROJECT_NAME}
+add_executable(${PROJECT_NAME}_compress ${sparsdr_compress_sources})
+add_executable(${PROJECT_NAME}_reconstruct ${sparsdr_reconstruct_sources})
+
+target_link_libraries(${PROJECT_NAME}_compress
+    ${FFTW_LIBRARIES}
+    ${LIQUID_LIBRARIES}
+)
+target_link_libraries(${PROJECT_NAME}_reconstruct
     ${FFTW_LIBRARIES}
     ${LIQUID_LIBRARIES}
 )

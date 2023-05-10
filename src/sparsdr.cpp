@@ -13,7 +13,7 @@ SparSDRCompressor::SparSDRCompressor(unsigned int fft_size, unsigned int start_b
     }
 
     this->fft0 = new FFTEngine(this->fft_size, FFTW_FORWARD, FFTW_ESTIMATE);
-    this->fft1 = new FFTEngine(this->fft_size, FFTW_BACKWARD, FFTW_ESTIMATE);
+    this->fft1 = new FFTEngine(this->fft_size, FFTW_FORWARD, FFTW_ESTIMATE);
 
     this->staggered_buffer = new StaggeredBuffer(this->fft_size, this->fft_size / 2);
 }
@@ -54,17 +54,16 @@ void SparSDRCompressor::compress()
         this->staggered_buffer->push(block);
 
         // Perform FFT
-        fft0->execute_fft(this->staggered_buffer->get_buffer0(), interblock);
+        fft0->execute_fft(this->staggered_buffer->get_buffer0(), block);
+        fft1->execute_fft(this->staggered_buffer->get_buffer1(), interblock);
 
         // Zero out specified bins
+        this->threshold_block(block);
         this->threshold_block(interblock);
 
-        // Perform iFFT
-        fft1->execute_fft(interblock, interblock);
-
-        // Normalize and output the block
-        this->scale_block(interblock, read_size);
-        fwrite(interblock, sizeof(std::complex<float>), read_size, stdout);
+        // Write both windows to stdout
+        fwrite(block, sizeof(std::complex<float>), this->fft_size, stdout);
+        fwrite(interblock, sizeof(std::complex<float>), this->fft_size, stdout);
     }
 }
 
@@ -81,8 +80,6 @@ SparSDRReconstructor::SparSDRReconstructor(unsigned int fft_size)
 
     this->ifft0 = new FFTEngine(this->fft_size, FFTW_BACKWARD, FFTW_ESTIMATE);
     this->ifft1 = new FFTEngine(this->fft_size, FFTW_BACKWARD, FFTW_ESTIMATE);
-
-    this->staggered_buffer = new StaggeredBuffer(this->fft_size, this->fft_size / 2);
 }
 
 SparSDRReconstructor::~SparSDRReconstructor()
@@ -90,39 +87,32 @@ SparSDRReconstructor::~SparSDRReconstructor()
     // Destroy FFT plans
     delete this->ifft0;
     delete this->ifft1;
-
-    // Destroy buffers
-    delete this->staggered_buffer;
 }
 
 void SparSDRReconstructor::reconstruct()
 {
     // Create FFT and iFFT plans
-    std::complex<float> block[this->fft_size];
-    std::complex<float> interblock[this->fft_size];
+    std::complex<float> block0[this->fft_size];
+    std::complex<float> block1[this->fft_size];
 
     while (true)
     {
 
-        size_t read_size = this->read_samples(block, this->fft_size);
-        if (read_size == 0 || read_size < this->fft_size)
+        size_t read_size = this->read_samples(block0, this->fft_size);
+        read_size += this->read_samples(block1, this->fft_size);
+        if (read_size < 2 * this->fft_size)
         {
             break;
         }
-        // Push block into staggered buffer
-        this->staggered_buffer->push(block);
+        // Perform IFFT on both blocks
+        ifft0->execute_fft(block0, block0);
+        ifft1->execute_fft(block1, block1);
 
-        // Perform FFT
-        ifft0->execute_fft(this->staggered_buffer->get_buffer0(), interblock);
+        // Normalize to preserve power
+        scale_block(block0, this->fft_size);
+        scale_block(block1, this->fft_size);
 
-        // Zero out specified bins
-        // this->threshold_block(interblock);
-
-        // Perform iFFT
-        ifft1->execute_fft(interblock, interblock);
-
-        // Normalize and output the block
-        // this->scale_block(interblock, read_size);
-        fwrite(interblock, sizeof(std::complex<float>), read_size, stdout);
+        // Write only one of the blocks to output
+        fwrite(block0, sizeof(std::complex<float>), this->fft_size, stdout);
     }
 }
