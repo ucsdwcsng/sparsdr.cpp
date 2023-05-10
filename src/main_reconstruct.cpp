@@ -14,8 +14,8 @@ int main(int argc, char **argv)
     std::ios_base::sync_with_stdio(false);
     std::cin.tie(nullptr);
     std::cout.tie(nullptr);
-    freopen(nullptr, "rb", stdin);
-    freopen(nullptr, "wb", stdout);
+    FILE *f1 = freopen(nullptr, "rb", stdin);
+    FILE *f2 = freopen(nullptr, "wb", stdout);
 
     // Process the input
     StdInterface *interface = new StdInterface();

@@ -34,7 +34,8 @@ list(APPEND sparsdr_common_sources
     sparsdr.cpp
     fftengine.cpp
     util.cpp
-    iface.cpp)
+    iface.cpp
+    window.cpp)
 
 list(APPEND sparsdr_compress_sources "${sparsdr_common_sources}")
 list(APPEND sparsdr_reconstruct_sources "${sparsdr_common_sources}")
@@ -64,12 +65,16 @@ include(CTest)
 include_directories(${CMAKE_SOURCE_DIR}/src)
 list(APPEND sparsdr_test_sources "${sparsdr_common_sources}")
 
-list(APPEND sparsdr_test_sources
-    ./tests/identitytest.cpp
-)
-add_executable(identity_test ${sparsdr_test_sources})
+add_executable(identity_test ${sparsdr_test_sources} ./tests/identitytest.cpp)
 target_link_libraries(identity_test
     ${FFTW_LIBRARIES}
     ${LIQUID_LIBRARIES}
 )
-add_test(NAME identity_test COMMAND identity_test 1024 0 10)
+add_test(NAME identity_test COMMAND identity_test)
+
+add_executable(window_test ${sparsdr_test_sources} ./tests/windowtest.cpp)
+target_link_libraries(window_test
+    ${FFTW_LIBRARIES}
+    ${LIQUID_LIBRARIES}
+)
+add_test(NAME window_test COMMAND window_test)
