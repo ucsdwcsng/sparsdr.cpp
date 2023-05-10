@@ -78,3 +78,10 @@ target_link_libraries(window_test
     ${LIQUID_LIBRARIES}
 )
 add_test(NAME window_test COMMAND window_test)
+
+add_executable(staggered_buf_test ${sparsdr_test_sources} ./tests/staggeredbuftest.cpp)
+target_link_libraries(staggered_buf_test
+    ${FFTW_LIBRARIES}
+    ${LIQUID_LIBRARIES}
+)
+add_test(NAME staggered_buf_test COMMAND staggered_buf_test)

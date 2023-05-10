@@ -62,21 +62,20 @@ void SparSDRCompressor::compress()
         {
             break;
         }
+
+        // Perform operation on buffer0
+        vector_window_cf((cf_t *)this->staggered_buffer->get_buffer0(), this->window, this->fft_size, interblock);
+        fft0->execute_fft(interblock, interblock);
+        this->threshold_block(interblock);
+        this->interface->write_samples(interblock, this->fft_size);
+
         // Push block into staggered buffer
         this->staggered_buffer->push(block);
 
-        // Perform Windowed FFT
-        vector_window_cf((cf_t *)this->staggered_buffer->get_buffer0(), this->window, this->fft_size, block);
-        fft0->execute_fft(block, block);
+        // Perform operation on buffer1
         vector_window_cf((cf_t *)this->staggered_buffer->get_buffer1(), this->window, this->fft_size, interblock);
         fft1->execute_fft(interblock, interblock);
-
-        // Zero out specified bins
-        this->threshold_block(block);
         this->threshold_block(interblock);
-
-        // Write both windows to stdout
-        this->interface->write_samples(block, this->fft_size);
         this->interface->write_samples(interblock, this->fft_size);
     }
 }

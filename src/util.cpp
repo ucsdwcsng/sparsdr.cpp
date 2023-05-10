@@ -28,9 +28,14 @@ StaggeredBuffer::~StaggeredBuffer()
 void StaggeredBuffer::push(std::complex<float> *block)
 {
 
+    // Copy last half of buffer0 to first half of buffer1
+    std::copy(this->buffer0 + this->stagger_size, this->buffer0 + this->buffer_size, this->buffer1);
+
+    // Copy input to buffer0
     std::copy(block, block + this->buffer_size, this->buffer0);
-    std::copy(this->buffer1 + this->stagger_size, this->buffer1 + this->buffer_size, this->buffer1);
-    std::copy(block + this->stagger_size, block + this->buffer_size, this->buffer1 + this->stagger_size);
+
+    // Copy first half of input to second half of buffer1
+    std::copy(block, block + this->stagger_size, this->buffer1 + this->stagger_size);
 
     this->push_count++;
 }

@@ -18,6 +18,7 @@ public:
     ~StaggeredBuffer();
     void push(std::complex<float> *block);
 
+    // Getters
     void *get_buffer0()
     {
         return this->buffer0;
@@ -25,6 +26,10 @@ public:
     void *get_buffer1()
     {
         return this->buffer1;
+    }
+    unsigned long long int get_push_count()
+    {
+        return this->push_count;
     }
 
 private:

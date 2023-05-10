@@ -7,9 +7,12 @@ void create_test_file(const char *filename)
     const float big_num_float = 1024 * 64;
     std::ofstream file(filename, std::ios::binary);
     std::complex<float> *buffer = new std::complex<float>[big_num];
+
+    size_t period = 1024 * 2;
     for (unsigned int i = 0; i < big_num; i++)
     {
-        buffer[i] = std::complex<float>(i / big_num_float, i / big_num_float);
+        float sign = (i % period) < (period / 2) ? 1.0 : -1.0;
+        buffer[i] = std::complex<float>(sign * 0.1f, sign * 0.1f);
     }
     file.write((char *)buffer, big_num * sizeof(std::complex<float>));
 }
@@ -50,15 +53,18 @@ int main(int argc, char **argv)
     std::complex<float> *buffer2 = new std::complex<float>[1024 * 64];
     file1.read((char *)buffer1, 1024 * 64 * sizeof(std::complex<float>));
     file2.read((char *)buffer2, 1024 * 64 * sizeof(std::complex<float>));
-    for (unsigned int i = 1024; i < 1024 * 64 - 1024; i++)
+
+    size_t nfft = 1024;
+
+    for (unsigned int i = 0; i < 1024 * 64 - 1024; i++)
     {
-        std::complex<float> diff = buffer1[i] - buffer2[i];
+        std::complex<float> diff = buffer1[i] - buffer2[i + nfft];
         float diff_mag = std::abs(diff);
 
         if (diff_mag > 0.0001 * std::abs(buffer1[i]))
         {
             std::cout << "Error at index " << i << std::endl;
-            std::cout << buffer1[i] << " != " << buffer2[i] << std::endl;
+            std::cout << buffer1[i] << " != " << buffer2[i + nfft] << std::endl;
             return 1;
         }
     }
