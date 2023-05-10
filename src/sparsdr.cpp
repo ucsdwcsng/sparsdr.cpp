@@ -15,6 +15,10 @@ SparSDRCompressor::SparSDRCompressor(unsigned int fft_size, unsigned int start_b
     this->fft0 = new FFTEngine(this->fft_size, FFTW_FORWARD, FFTW_ESTIMATE);
     this->fft1 = new FFTEngine(this->fft_size, FFTW_FORWARD, FFTW_ESTIMATE);
 
+    // Create window
+    this->window = new float[this->fft_size];
+    make_hann_window(this->window, this->fft_size);
+
     this->staggered_buffer = new StaggeredBuffer(this->fft_size, this->fft_size / 2);
 
     this->interface = interface;
@@ -25,6 +29,9 @@ SparSDRCompressor::~SparSDRCompressor()
     // Destroy FFT plans
     delete this->fft0;
     delete this->fft1;
+
+    // Destroy window
+    delete this->window;
 
     // Destroy buffers
     delete this->staggered_buffer;
@@ -58,9 +65,11 @@ void SparSDRCompressor::compress()
         // Push block into staggered buffer
         this->staggered_buffer->push(block);
 
-        // Perform FFT
-        fft0->execute_fft(this->staggered_buffer->get_buffer0(), block);
-        fft1->execute_fft(this->staggered_buffer->get_buffer1(), interblock);
+        // Perform Windowed FFT
+        vector_window_cf((cf_t *)this->staggered_buffer->get_buffer0(), this->window, this->fft_size, block);
+        fft0->execute_fft(block, block);
+        vector_window_cf((cf_t *)this->staggered_buffer->get_buffer1(), this->window, this->fft_size, interblock);
+        fft1->execute_fft(interblock, interblock);
 
         // Zero out specified bins
         this->threshold_block(block);
@@ -105,6 +114,9 @@ void SparSDRReconstructor::reconstruct()
     std::complex<float> block0[this->fft_size];
     std::complex<float> block1[this->fft_size];
 
+    std::complex<float> evenw[this->fft_size];
+    std::complex<float> oddw[this->fft_size];
+
     while (true)
     {
 
@@ -115,14 +127,25 @@ void SparSDRReconstructor::reconstruct()
             break;
         }
         // Perform IFFT on both blocks
-        ifft0->execute_fft(block0, block0);
-        ifft1->execute_fft(block1, block1);
+        ifft0->execute_fft(block0, evenw);
+        scale_block(evenw, this->fft_size);
 
-        // Normalize to preserve power
-        scale_block(block0, this->fft_size);
-        scale_block(block1, this->fft_size);
+        // add last half of odd window to first half of even window
+        for (unsigned int i = 0; i < this->fft_size / 2; ++i)
+        {
+            evenw[i] += oddw[i + this->fft_size / 2];
+        }
+
+        ifft1->execute_fft(block1, oddw);
+        scale_block(oddw, this->fft_size);
+
+        // add last half of even window to first half of odd window
+        for (unsigned int i = 0; i < this->fft_size / 2; ++i)
+        {
+            evenw[i + this->fft_size / 2] += oddw[i];
+        }
 
         // Write only one of the blocks to output
-        size_t write_size = this->interface->write_samples(block0, this->fft_size);
+        size_t write_size = this->interface->write_samples(evenw, this->fft_size);
     }
 }

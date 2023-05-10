@@ -8,6 +8,7 @@
 #include <fftw3.h>
 #include <fftengine.h>
 #include <iface.h>
+#include <window.h>
 
 class SparSDRCompressor
 {
@@ -24,6 +25,8 @@ private:
     unsigned int stop_bin;
     FFTEngine *fft0 = nullptr;
     FFTEngine *fft1 = nullptr;
+
+    float *window = nullptr;
 
     StaggeredBuffer *staggered_buffer = nullptr;
 

@@ -50,7 +50,7 @@ int main(int argc, char **argv)
     std::complex<float> *buffer2 = new std::complex<float>[1024 * 64];
     file1.read((char *)buffer1, 1024 * 64 * sizeof(std::complex<float>));
     file2.read((char *)buffer2, 1024 * 64 * sizeof(std::complex<float>));
-    for (unsigned int i = 0; i < 1024 * 64; i++)
+    for (unsigned int i = 1024; i < 1024 * 64 - 1024; i++)
     {
         std::complex<float> diff = buffer1[i] - buffer2[i];
         float diff_mag = std::abs(diff);

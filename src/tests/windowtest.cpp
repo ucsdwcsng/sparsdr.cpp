@@ -22,7 +22,7 @@ int main(int argc, char **argv)
     make_hann_window(window, buf_len);
 
     // Apply the window
-    vector_window_cf(buffer, window, buf_len);
+    vector_window_cf(buffer, window, buf_len, buffer);
 
     // Test COLA property
     float max_diff = 0.000001;
