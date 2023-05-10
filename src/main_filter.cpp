@@ -10,7 +10,7 @@ void compress_wrapper(unsigned int fft_size, unsigned int start_bin, unsigned in
 void reconstruct_wrapper(unsigned int fft_size, const char *filename)
 {
     FileInterface *interface = new FileInterface("/tmp/interimfile", filename);
-    SparSDRReconstructor sparsdr_r(fft_size, interface);
+    SparSDRReconstructor sparsdr_r(fft_size, interface, true);
     sparsdr_r.reconstruct();
 }
 
@@ -32,11 +32,18 @@ int main(int argc, char **argv)
         return 1;
     }
 
+    // Make sure bins are all on one side of the window
+    if (start_bin < fft_size / 2 && stop_bin > fft_size / 2)
+    {
+        std::cerr << "Bins must be on one side of the window" << std::endl;
+        return 1;
+    }
+
     // Compress
     compress_wrapper(fft_size, start_bin, stop_bin, argv[4]);
 
     // Reconstruct
-    reconstruct_wrapper(fft_size, argv[5]);
+    reconstruct_wrapper(stop_bin - start_bin, argv[5]);
 
     return 0;
 }

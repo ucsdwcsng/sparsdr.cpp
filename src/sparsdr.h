@@ -18,7 +18,7 @@ public:
     void compress();
 
 private:
-    void threshold_block(std::complex<float> *block);
+    void threshold_and_write(std::complex<float> *block);
 
     unsigned int fft_size;
     unsigned int start_bin;
@@ -37,12 +37,13 @@ private:
 class SparSDRReconstructor
 {
 public:
-    SparSDRReconstructor(unsigned int fft_size, Interface *interface);
+    SparSDRReconstructor(unsigned int fft_size, Interface *interface, bool fft_shift);
     ~SparSDRReconstructor();
     void reconstruct();
 
 private:
     unsigned int fft_size;
+    bool fft_shift = false;
     FFTEngine *ifft0 = nullptr;
     FFTEngine *ifft1 = nullptr;
 

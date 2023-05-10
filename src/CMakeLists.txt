@@ -54,6 +54,8 @@ target_link_libraries(${PROJECT_NAME}_filter
     ${LIQUID_LIBRARIES}
 )
 
+install(TARGETS ${PROJECT_NAME}_filter DESTINATION bin)
+
 include(CTest)
 
 include_directories(${CMAKE_SOURCE_DIR}/src)

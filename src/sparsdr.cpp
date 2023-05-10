@@ -9,7 +9,11 @@ SparSDRCompressor::SparSDRCompressor(unsigned int fft_size, unsigned int start_b
     // if fft size is not a multiple of 2, throw Runtime error
     if (this->fft_size % 2 != 0)
     {
-        throw std::runtime_error("FFT size must be a multiple of 2");
+        throw std::runtime_error("FFT size must be even");
+    }
+    if ((this->stop_bin - this->start_bin) % 2 != 0)
+    {
+        throw std::runtime_error("Bin subset must be even");
     }
 
     this->fft0 = new FFTEngine(this->fft_size, FFTW_FORWARD, FFTW_ESTIMATE);
@@ -40,12 +44,9 @@ SparSDRCompressor::~SparSDRCompressor()
     delete this->interface;
 }
 
-void SparSDRCompressor::threshold_block(std::complex<float> *block)
+void SparSDRCompressor::threshold_and_write(std::complex<float> *block)
 {
-    for (unsigned int bin = this->start_bin; bin <= this->stop_bin; ++bin)
-    {
-        block[bin] = 0.0f;
-    }
+    this->interface->write_samples(block, this->stop_bin - this->start_bin);
 }
 
 void SparSDRCompressor::compress()
@@ -66,8 +67,7 @@ void SparSDRCompressor::compress()
         // Perform operation on buffer0
         vector_window_cf((cf_t *)this->staggered_buffer->get_buffer0(), this->window, this->fft_size, interblock);
         fft0->execute_fft(interblock, interblock);
-        this->threshold_block(interblock);
-        this->interface->write_samples(interblock, this->fft_size);
+        this->threshold_and_write(interblock);
 
         // Push block into staggered buffer
         this->staggered_buffer->push(block);
@@ -75,13 +75,12 @@ void SparSDRCompressor::compress()
         // Perform operation on buffer1
         vector_window_cf((cf_t *)this->staggered_buffer->get_buffer1(), this->window, this->fft_size, interblock);
         fft1->execute_fft(interblock, interblock);
-        this->threshold_block(interblock);
-        this->interface->write_samples(interblock, this->fft_size);
+        this->threshold_and_write(interblock);
     }
 }
 
 //---- Reconstruct ---//
-SparSDRReconstructor::SparSDRReconstructor(unsigned int fft_size, Interface *interface)
+SparSDRReconstructor::SparSDRReconstructor(unsigned int fft_size, Interface *interface, bool fft_shift = false)
 {
     this->fft_size = fft_size;
 
@@ -95,6 +94,8 @@ SparSDRReconstructor::SparSDRReconstructor(unsigned int fft_size, Interface *int
     this->ifft1 = new FFTEngine(this->fft_size, FFTW_BACKWARD, FFTW_ESTIMATE);
 
     this->interface = interface;
+
+    this->fft_shift = fft_shift;
 }
 
 SparSDRReconstructor::~SparSDRReconstructor()
@@ -119,8 +120,20 @@ void SparSDRReconstructor::reconstruct()
     while (true)
     {
 
-        size_t read_size = this->interface->read_samples(block0, this->fft_size);
-        read_size += this->interface->read_samples(block1, this->fft_size);
+        size_t read_size = 0;
+
+        if (this->fft_shift)
+        {
+            read_size += this->interface->read_samples(block0 + this->fft_size / 2, this->fft_size / 2);
+            read_size += this->interface->read_samples(block0, this->fft_size / 2);
+            read_size += this->interface->read_samples(block1 + this->fft_size / 2, this->fft_size / 2);
+            read_size += this->interface->read_samples(block1, this->fft_size / 2);
+        }
+        else
+        {
+            read_size += this->interface->read_samples(block0, this->fft_size);
+            read_size += this->interface->read_samples(block1, this->fft_size);
+        }
         if (read_size < 2 * this->fft_size)
         {
             break;

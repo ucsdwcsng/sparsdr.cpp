@@ -20,8 +20,8 @@ void create_test_file(const char *filename)
 void run_compress()
 {
     unsigned int fft_size = 1024;
-    unsigned int start_bin = 1;
-    unsigned int stop_bin = 0;
+    unsigned int start_bin = 0;
+    unsigned int stop_bin = fft_size;
 
     FileInterface *interface = new FileInterface("./testfile", "./interimfile");
     SparSDRCompressor sparsdr(fft_size, start_bin, stop_bin, interface);
@@ -32,7 +32,7 @@ void run_reconstruct()
 {
     unsigned int fft_size = 1024;
     FileInterface *interface2 = new FileInterface("./interimfile", "./testfile2");
-    SparSDRReconstructor sparsdr2(fft_size, interface2);
+    SparSDRReconstructor sparsdr2(fft_size, interface2, false);
     sparsdr2.reconstruct();
 }
 

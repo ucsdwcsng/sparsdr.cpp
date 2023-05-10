@@ -19,7 +19,7 @@ int main(int argc, char **argv)
 
     // Process the input
     StdInterface *interface = new StdInterface();
-    SparSDRReconstructor sparsdr(fft_size, interface);
+    SparSDRReconstructor sparsdr(fft_size, interface, false);
     sparsdr.reconstruct();
 
     return 0;
