@@ -30,18 +30,21 @@ include_directories(
     ${LIQUID_INCLUDES}
 )
 
-list(APPEND sparsdr_compress_sources
-    main_compress.cpp
+list(APPEND sparsdr_common_sources
     sparsdr.cpp
     fftengine.cpp
     util.cpp
+    iface.cpp)
+
+list(APPEND sparsdr_compress_sources "${sparsdr_common_sources}")
+list(APPEND sparsdr_reconstruct_sources "${sparsdr_common_sources}")
+
+list(APPEND sparsdr_compress_sources
+    main_compress.cpp
 )
 
 list(APPEND sparsdr_reconstruct_sources
     main_reconstruct.cpp
-    sparsdr.cpp
-    fftengine.cpp
-    util.cpp
 )
 
 add_executable(${PROJECT_NAME}_compress ${sparsdr_compress_sources})
@@ -55,3 +58,18 @@ target_link_libraries(${PROJECT_NAME}_reconstruct
     ${FFTW_LIBRARIES}
     ${LIQUID_LIBRARIES}
 )
+
+include(CTest)
+
+include_directories(${CMAKE_SOURCE_DIR}/src)
+list(APPEND sparsdr_test_sources "${sparsdr_common_sources}")
+
+list(APPEND sparsdr_test_sources
+    ./tests/identitytest.cpp
+)
+add_executable(identity_test ${sparsdr_test_sources})
+target_link_libraries(identity_test
+    ${FFTW_LIBRARIES}
+    ${LIQUID_LIBRARIES}
+)
+add_test(NAME identity_test COMMAND identity_test 1024 0 10)

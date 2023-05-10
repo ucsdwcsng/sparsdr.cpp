@@ -26,7 +26,8 @@ int main(int argc, char **argv)
     freopen(nullptr, "wb", stdout);
 
     // Process the input
-    SparSDRCompressor sparsdr(fft_size, start_bin, stop_bin);
+    StdInterface *interface = new StdInterface();
+    SparSDRCompressor sparsdr(fft_size, start_bin, stop_bin, interface);
     sparsdr.compress();
 
     return 0;

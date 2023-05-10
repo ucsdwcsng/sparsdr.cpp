@@ -9,8 +9,8 @@
 
 // Simple processing
 void scale_block(std::complex<float> *block, size_t block_size);
-// Staggered buffer
 
+// Staggered buffer
 class StaggeredBuffer
 {
 public:

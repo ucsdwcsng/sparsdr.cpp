@@ -1,14 +1,12 @@
 #include <sparsdr.h>
+#include <iface.h>
 
 int main(int argc, char **argv)
 {
-    if (argc != 2)
-    {
-        std::cerr << "Usage: " << argv[0] << " <fft_size>" << std::endl;
-        return 1;
-    }
 
-    unsigned int fft_size = std::atoi(argv[1]);
+    unsigned int fft_size = 1024;
+    unsigned int start_bin = 0;
+    unsigned int stop_bin = 512;
 
     // Set stdin and stdout to binary mode
     std::ios_base::sync_with_stdio(false);
@@ -19,8 +17,7 @@ int main(int argc, char **argv)
 
     // Process the input
     StdInterface *interface = new StdInterface();
-    SparSDRReconstructor sparsdr(fft_size, interface);
-    sparsdr.reconstruct();
+    SparSDRCompressor sparsdr(fft_size, start_bin, stop_bin, interface);
 
     return 0;
 }

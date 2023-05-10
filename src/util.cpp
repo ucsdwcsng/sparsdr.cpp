@@ -10,7 +10,6 @@ void scale_block(std::complex<float> *block, size_t block_size)
 }
 
 // StaggeredBuffer
-
 StaggeredBuffer::StaggeredBuffer(unsigned int buffer_size, unsigned int stagger_size)
 {
     this->buffer_size = buffer_size;
