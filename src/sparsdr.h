@@ -8,12 +8,12 @@
 #include <fftw3.h>
 #include <fftengine.h>
 
-class SparSDR
+class SparSDRCompressor
 {
 public:
-    SparSDR(unsigned int fft_size, unsigned int start_bin, unsigned int stop_bin);
-    ~SparSDR();
-    void process_block();
+    SparSDRCompressor(unsigned int fft_size, unsigned int start_bin, unsigned int stop_bin);
+    ~SparSDRCompressor();
+    void compress();
 
 private:
     void scale_block(std::complex<float> *block, size_t block_size)
@@ -34,6 +34,26 @@ private:
     unsigned int stop_bin;
     FFTEngine *fft0 = nullptr;
     FFTEngine *fft1 = nullptr;
+
+    StaggeredBuffer *staggered_buffer = nullptr;
+};
+
+class SparSDRReconstructor
+{
+public:
+    SparSDRReconstructor(unsigned int fft_size);
+    ~SparSDRReconstructor();
+    void reconstruct();
+
+private:
+    unsigned int read_samples(std::complex<float> *block, size_t block_size)
+    {
+        return fread(block, sizeof(std::complex<float>), block_size, stdin);
+    }
+
+    unsigned int fft_size;
+    FFTEngine *ifft0 = nullptr;
+    FFTEngine *ifft1 = nullptr;
 
     StaggeredBuffer *staggered_buffer = nullptr;
 };
