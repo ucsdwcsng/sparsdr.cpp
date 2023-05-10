@@ -37,25 +37,19 @@ list(APPEND sparsdr_common_sources
     iface.cpp
     window.cpp)
 
-list(APPEND sparsdr_compress_sources "${sparsdr_common_sources}")
-list(APPEND sparsdr_reconstruct_sources "${sparsdr_common_sources}")
-
-list(APPEND sparsdr_compress_sources
-    main_compress.cpp
-)
-
-list(APPEND sparsdr_reconstruct_sources
-    main_reconstruct.cpp
-)
-
-add_executable(${PROJECT_NAME}_compress ${sparsdr_compress_sources})
-add_executable(${PROJECT_NAME}_reconstruct ${sparsdr_reconstruct_sources})
+add_executable(${PROJECT_NAME}_compress ${sparsdr_common_sources} main_compress.cpp)
+add_executable(${PROJECT_NAME}_reconstruct ${sparsdr_common_sources} main_reconstruct.cpp)
+add_executable(${PROJECT_NAME}_filter ${sparsdr_common_sources} main_filter.cpp)
 
 target_link_libraries(${PROJECT_NAME}_compress
     ${FFTW_LIBRARIES}
     ${LIQUID_LIBRARIES}
 )
 target_link_libraries(${PROJECT_NAME}_reconstruct
+    ${FFTW_LIBRARIES}
+    ${LIQUID_LIBRARIES}
+)
+target_link_libraries(${PROJECT_NAME}_filter
     ${FFTW_LIBRARIES}
     ${LIQUID_LIBRARIES}
 )
