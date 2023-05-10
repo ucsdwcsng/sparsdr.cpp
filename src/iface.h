@@ -28,6 +28,8 @@ class FileInterface : public Interface
 public:
     FileInterface(const char *ifilename, const char *ofilename);
     ~FileInterface();
+    size_t read_samples(std::complex<float> *block, size_t block_size);
+    size_t write_samples(std::complex<float> *block, size_t block_size);
 
 private:
     FILE *istream = nullptr;

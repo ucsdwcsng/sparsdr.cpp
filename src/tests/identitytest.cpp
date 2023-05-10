@@ -1,23 +1,67 @@
 #include <sparsdr.h>
 #include <iface.h>
 
+void create_test_file(const char *filename)
+{
+    const size_t big_num = 1024 * 64;
+    const float big_num_float = 1024 * 64;
+    std::ofstream file(filename, std::ios::binary);
+    std::complex<float> *buffer = new std::complex<float>[big_num];
+    for (unsigned int i = 0; i < big_num; i++)
+    {
+        buffer[i] = std::complex<float>(i / big_num_float, i / big_num_float);
+    }
+    file.write((char *)buffer, big_num * sizeof(std::complex<float>));
+}
+
+void run_compress()
+{
+    unsigned int fft_size = 1024;
+    unsigned int start_bin = 1;
+    unsigned int stop_bin = 0;
+
+    FileInterface *interface = new FileInterface("./testfile", "./interimfile");
+    SparSDRCompressor sparsdr(fft_size, start_bin, stop_bin, interface);
+    sparsdr.compress();
+}
+
+void run_reconstruct()
+{
+    unsigned int fft_size = 1024;
+    FileInterface *interface2 = new FileInterface("./interimfile", "./testfile2");
+    SparSDRReconstructor sparsdr2(fft_size, interface2);
+    sparsdr2.reconstruct();
+}
+
 int main(int argc, char **argv)
 {
 
-    unsigned int fft_size = 1024;
-    unsigned int start_bin = 0;
-    unsigned int stop_bin = 512;
+    // This test creates a file, and then compresses and uncompresses it
+    // Create a file and load it with 1024*64 complex samples
+    create_test_file("./testfile");
 
-    // Set stdin and stdout to binary mode
-    std::ios_base::sync_with_stdio(false);
-    std::cin.tie(nullptr);
-    std::cout.tie(nullptr);
-    freopen(nullptr, "rb", stdin);
-    freopen(nullptr, "wb", stdout);
+    run_compress();
+    run_reconstruct();
 
-    // Process the input
-    StdInterface *interface = new StdInterface();
-    SparSDRCompressor sparsdr(fft_size, start_bin, stop_bin, interface);
+    // Compare the two files
+    std::ifstream file1("./testfile", std::ios::binary);
+    std::ifstream file2("./testfile2", std::ios::binary);
+    std::complex<float> *buffer1 = new std::complex<float>[1024 * 64];
+    std::complex<float> *buffer2 = new std::complex<float>[1024 * 64];
+    file1.read((char *)buffer1, 1024 * 64 * sizeof(std::complex<float>));
+    file2.read((char *)buffer2, 1024 * 64 * sizeof(std::complex<float>));
+    for (unsigned int i = 0; i < 1024 * 64; i++)
+    {
+        std::complex<float> diff = buffer1[i] - buffer2[i];
+        float diff_mag = std::abs(diff);
+
+        if (diff_mag > 0.0001 * std::abs(buffer1[i]))
+        {
+            std::cout << "Error at index " << i << std::endl;
+            std::cout << buffer1[i] << " != " << buffer2[i] << std::endl;
+            return 1;
+        }
+    }
 
     return 0;
 }
