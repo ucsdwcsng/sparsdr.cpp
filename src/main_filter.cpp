@@ -26,7 +26,7 @@ int main(int argc, char **argv)
     unsigned int start_bin = std::atoi(argv[2]);
     unsigned int stop_bin = std::atoi(argv[3]);
 
-    if (stop_bin >= fft_size || start_bin >= stop_bin)
+    if (stop_bin > fft_size || start_bin >= stop_bin)
     {
         std::cerr << "Invalid bin range" << std::endl;
         return 1;

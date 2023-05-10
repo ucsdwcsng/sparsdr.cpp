@@ -46,7 +46,7 @@ SparSDRCompressor::~SparSDRCompressor()
 
 void SparSDRCompressor::threshold_and_write(std::complex<float> *block)
 {
-    this->interface->write_samples(block, this->stop_bin - this->start_bin);
+    this->interface->write_samples(block + this->start_bin, this->stop_bin - this->start_bin);
 }
 
 void SparSDRCompressor::compress()
