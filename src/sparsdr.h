@@ -37,13 +37,12 @@ private:
 class SparSDRReconstructor
 {
 public:
-    SparSDRReconstructor(unsigned int fft_size, Interface *interface, bool fft_shift);
+    SparSDRReconstructor(unsigned int fft_size, Interface *interface);
     ~SparSDRReconstructor();
     void reconstruct();
 
 private:
     unsigned int fft_size;
-    bool fft_shift = false;
     FFTEngine *ifft0 = nullptr;
     FFTEngine *ifft1 = nullptr;
 

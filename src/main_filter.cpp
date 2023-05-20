@@ -10,7 +10,7 @@ void compress_wrapper(unsigned int fft_size, unsigned int start_bin, unsigned in
 void reconstruct_wrapper(unsigned int fft_size, const char *filename)
 {
     FileInterface *interface = new FileInterface("/tmp/interimfile", filename);
-    SparSDRReconstructor sparsdr_r(fft_size, interface, true);
+    SparSDRReconstructor sparsdr_r(fft_size, interface);
     sparsdr_r.reconstruct();
 }
 
