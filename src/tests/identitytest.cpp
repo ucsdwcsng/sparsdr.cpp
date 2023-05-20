@@ -32,7 +32,7 @@ void run_reconstruct()
 {
     unsigned int fft_size = 1024;
     FileInterface *interface2 = new FileInterface("./interimfile", "./testfile2");
-    SparSDRReconstructor sparsdr2(fft_size, interface2, false);
+    SparSDRReconstructor sparsdr2(fft_size, interface2);
     sparsdr2.reconstruct();
 }
 

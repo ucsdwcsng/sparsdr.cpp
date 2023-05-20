@@ -46,6 +46,10 @@ SparSDRCompressor::~SparSDRCompressor()
 
 void SparSDRCompressor::threshold_and_write(std::complex<float> *block)
 {
+
+    // FFT-Shift the entire window
+    std::rotate(block, block + this->fft_size / 2, block + this->fft_size);
+
     this->interface->write_samples(block + this->start_bin, this->stop_bin - this->start_bin);
 }
 
@@ -80,7 +84,7 @@ void SparSDRCompressor::compress()
 }
 
 //---- Reconstruct ---//
-SparSDRReconstructor::SparSDRReconstructor(unsigned int fft_size, Interface *interface, bool fft_shift = false)
+SparSDRReconstructor::SparSDRReconstructor(unsigned int fft_size, Interface *interface)
 {
     this->fft_size = fft_size;
 
@@ -94,8 +98,6 @@ SparSDRReconstructor::SparSDRReconstructor(unsigned int fft_size, Interface *int
     this->ifft1 = new FFTEngine(this->fft_size, FFTW_BACKWARD, FFTW_ESTIMATE);
 
     this->interface = interface;
-
-    this->fft_shift = fft_shift;
 }
 
 SparSDRReconstructor::~SparSDRReconstructor()
@@ -122,18 +124,11 @@ void SparSDRReconstructor::reconstruct()
 
         size_t read_size = 0;
 
-        if (this->fft_shift)
-        {
-            read_size += this->interface->read_samples(block0 + this->fft_size / 2, this->fft_size / 2);
-            read_size += this->interface->read_samples(block0, this->fft_size / 2);
-            read_size += this->interface->read_samples(block1 + this->fft_size / 2, this->fft_size / 2);
-            read_size += this->interface->read_samples(block1, this->fft_size / 2);
-        }
-        else
-        {
-            read_size += this->interface->read_samples(block0, this->fft_size);
-            read_size += this->interface->read_samples(block1, this->fft_size);
-        }
+        read_size += this->interface->read_samples(block0 + this->fft_size / 2, this->fft_size / 2);
+        read_size += this->interface->read_samples(block0, this->fft_size / 2);
+        read_size += this->interface->read_samples(block1 + this->fft_size / 2, this->fft_size / 2);
+        read_size += this->interface->read_samples(block1, this->fft_size / 2);
+
         if (read_size < 2 * this->fft_size)
         {
             break;

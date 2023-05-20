@@ -36,12 +36,12 @@ Usage: sparsdr_filter <fft_size> <start_bin> <stop_bin> <input_file> <output_fil
 
 The executable will channelize the input file, pick out the relevant bins, and then reconstruct the lower rate I/Q samples.
 
-> **NOTE:**  `sparsdr_filter` currently only supports bin ranges that are on one side of the fft window. That is, the seelcted window should exclusively have only positive or negative frequencies.
+> **NOTE:**  `sparsdr_filter` uses positive bin indices only. Bin index 0 corresponds to the lowest (most negative) frequency in the complex baseband sense. Bin index `fft_size - 1` corresponds to the highest (most positive) frequency.
 
 **Example**: To get the 2402 MHz BLE channel from a 100 MHz capture of the ISM band centered at 2450 MHz, the following command can be used:
 
 ```bash
-sparsdr_filter 1000 510 530 <input_file> <output_file>
+sparsdr_filter 1000 10 30 <input_file> <output_file>
 ```
 
 The output file should be interpreted at a sample rate of 2 MHz.
